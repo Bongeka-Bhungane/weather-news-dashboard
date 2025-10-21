@@ -1,33 +1,27 @@
-import https from "https";
+import https from 'https';
 
-// Function to fetch data using a callback
-function fetchData(
-  url: string,
-  callback: (err: Error | null, data?: any) => void
-) {
-  https
-    .get(url, (res) => {
-      let data = "";
+function fetchData(url: string, callback: (err: Error | null, data?: any) => void): void {
+  https.get(url, (res) => {
+    let data = "";
 
-      res.on("data", (chunk) => {
-        data += chunk;
-      });
-
-      res.on("end", () => {
-        try {
-          const parsed = JSON.parse(data);
-          callback(null, parsed);
-        } catch (error) {
-          callback(error as Error);
-        }
-      });
-    })
-    .on("error", (err) => {
-      callback(err);
+    res.on("data", (chunk) => {
+      data += chunk;
     });
+
+    res.on("end", () => {
+      try {
+        const parsedData = JSON.parse(data);
+        callback(null, parsedData);
+      } catch (error) {
+        callback(error as Error);
+      }
+    })
+  })
+  .on("error", (err) => {
+    callback(err);
+  })
 }
 
-// Demonstrating callback hell by nesting dependent calls
 function getWeatherAndNews() {
   const weatherUrl =
     "https://api.open-meteo.com/v1/forecast?latitude=-33.92&longitude=18.42&current_weather=true";
@@ -37,47 +31,38 @@ function getWeatherAndNews() {
 
   fetchData(weatherUrl, (weatherErr, weatherData) => {
     if (weatherErr) {
-      console.error("Error fetching weather:", weatherErr);
+      console.error("Error fetching weather data:", weatherErr);
       return;
     }
-    console.log("Weather fetched successfully!");
+    console.log("Weather fetched sucessfully");
 
-    // Nested callback (callback hell)
     console.log("Fetching news data...");
-
     fetchData(newsUrl, (newsErr, newsData) => {
       if (newsErr) {
-        console.error("Error fetching news:", newsErr);
+        console.error("Error fetching news data:", newsErr);
         return;
       }
 
-      console.log("News fetched successfully!");
-      console.log("\n=== Weather Data ===");
-      console.log(weatherData.current_weather);
+      console.log("News fetched successfully");
+      console.log("---current Weather---");
+      console.log("Current Weather:", weatherData.current_weather);
 
-      console.log("\n=== News Headlines ===");
-      newsData.posts.slice(0, 5).forEach((post: any, i: number) => {
+      console.log("---article---");
+      newsData.posts.slice(0, 5).forEach((post: any, i: number) =>{
         console.log(`${i + 1}. ${post.title}`);
       });
 
-      // Another nested call to exaggerate callback hell
-      console.log(
-        "\nFetching another set of data just to show callback hell..."
-      );
+      console.log("Fetching another set of data to show callback hell...");
 
       fetchData(newsUrl, (extraErr, extraData) => {
         if (extraErr) {
-          console.error("Error fetching extra data:", extraErr);
+          console.error("Error fetching extra news data:", extraErr);
           return;
         }
-
-        console.log(
-          "Extra data fetched successfully! Done with callback hell "
-        );
-      });
-    });
-  });
+        console.log("Extra News fetched: callback done successfully");
+      })
+    })
+  })
 }
 
-// Run it
 getWeatherAndNews();
